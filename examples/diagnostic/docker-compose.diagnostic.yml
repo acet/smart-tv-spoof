@@ -1,0 +1,44 @@
+networks:
+  tv_macvlan:
+    driver: macvlan
+    driver_opts:
+      parent: ${HOST_INTERFACE}
+    ipam:
+      config:
+        - subnet: ${LAN_SUBNET}
+          gateway: ${LAN_GATEWAY}
+
+services:
+  smart-tv-spoof:
+    image: acet/smart-tv-spoof:latest
+    restart: "no"
+
+  nextdns:
+    image: nextdns/nextdns
+    network_mode: host
+    restart: "no"
+    volumes:
+      - ./hosts:/etc/hosts:ro
+    command: >
+      run
+      -listen=${DNS_LISTEN_IP}:53
+      -profile=${NEXTDNS_PROFILE_ID}
+      -use-hosts
+      -log-queries
+      -report-client-info
+
+  mitmproxy:
+    image: mitmproxy/mitmproxy
+    restart: "no"
+    networks:
+      default: {}
+      tv_macvlan:
+        ipv4_address: ${MITMPROXY_IP}
+    volumes:
+      - ./mitmproxy-data:/home/mitmproxy/.mitmproxy
+    command: >
+      mitmdump
+      --mode reverse:http://smart-tv-spoof:8080
+      -p 443
+      --ssl-insecure
+      -v

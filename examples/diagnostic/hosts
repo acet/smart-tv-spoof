@@ -1,0 +1,6 @@
+127.0.0.1 localhost
+::1 localhost
+
+# Set DNS_LISTEN_IP in your .env file
+10.0.0.2 cdn.samsungcloudsolution.com
+10.0.0.2 time.samsungcloudsolution.com
